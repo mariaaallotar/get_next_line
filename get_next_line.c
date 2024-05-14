@@ -12,50 +12,65 @@
 
 #include "get_next_line.h"
 
+//fix headerfile and utils
+int	ft_findchr(const char *s, int c);
+char	*ft_substr(char const *s, unsigned int start, size_t len);
+char	*ft_strjoin(char const *s1, char const *s2);
+char	*ft_strdup(const char *s1);
+size_t	ft_strlen(const char *s);
+
 char	*get_next_line(int fd)
 {
-	static char	*remain = "\0";
 	char		*read_buf;
-	char		*big_buf;
-	int			i;
+	static char	*rest = "\0";
 	char		*line;
+	int			line_end_i;
+	char		*temp;
+	ssize_t		bytes_read;
 
-	read_buf = (char *) malloc((BUFFER_SIZE + 1) * sizeof(char));
 	while (1)
 	{
-		read(fd, (void *) read_buf, BUFFER_SIZE);
-		read_buf[BUFFER_SIZE] = '\0';
-		big_buf = ft_strjoin(remain, read_buf);
-		i = ft_findchr(big_buf, '\n');
-		if (i)
+		read_buf = (char *) malloc((BUFFER_SIZE + 1) * sizeof(char)); //allocate memery to read into + to null terminate
+		if (read_buf == NULL)
+			return (NULL);
+		bytes_read = read(fd, read_buf, BUFFER_SIZE);
+		if (bytes_read == 0)
 		{
-			line = ft_substr(big_buf, 0, i + 1);
+			line = ft_strdup(rest);
+			//free(read_buf);
+			//free(rest);
+			return (line);
+		} else if (bytes_read == -1)
+		{
+			//free(read_buf);
+			//free(rest);
+			return (NULL);
+		}
+		read_buf[BUFFER_SIZE] = '\0';
+		temp = ft_strjoin(rest, read_buf);
+		//free(rest);
+		//free(read_buf);
+		if (temp == NULL)
+			return (NULL);
+		line_end_i = ft_findchr(temp, '\n');
+		if (line_end_i != -1)
+		{
+			line = ft_substr(temp, 0, line_end_i + 1);
 			if (line == NULL)
 			{
-				free(read_buf);
-				free(big_buf);
-				return (NULL);
+				//free(temp);
+				return(NULL);
 			}
-			remain = ft_substr(big_buf, i + 1, ft_strlen(big_buf) - ft_strlen (line));
-			free(read_buf);
-			free(big_buf);
+			rest = ft_strdup(temp + ft_strlen(line));
 			return(line);
 		}
-		i = -1;
-		i = ft_findchr(big_buf, '\0');
-		if (i != -1 && i != ft_strlen(big_buf))
+		line_end_i = ft_findchr(temp, '\0');
+		if (line_end_i)
 		{
-			line = ft_substr(big_buf, 0, i + 1);
-			if (line == NULL)
-			{
-				free(read_buf);
-				free(big_buf);
-				return (NULL);
-			}
-			free(read_buf);
-			free(big_buf);
+			line = ft_strdup(temp);
+			//free(temp);
 			return (line);
 		}
 	}
-	return (NULL);
+	return(NULL);
 }

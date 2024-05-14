@@ -11,6 +11,7 @@
 /* ************************************************************************** */
 
 #include "get_next_line.h"
+
 /**
 * Allocates and returns a new string, which is the result of the concatenation
 *	of 's1' and 's2'
@@ -42,16 +43,15 @@ int	ft_findchr(const char *s, int c)
 	int	i;
 
 	i = 0;
-	while (*s != '\0')
+	while (s[i] != '\0')
 	{
-		if (*s == (char) c)
+		if (s[i] == (char) c)
 			return (i);
-		s++;
 		i++;
 	}
 	if ((char) c == '\0')
 		return (i);
-	return (i);
+	return (-1);
 }
 
 /**
@@ -102,6 +102,28 @@ size_t	ft_strlen(const char *s)
 		s++;
 	}
 	return (i);
+}
+
+/**
+* Allocates sufficient memory for a copy of the string s1, does the copy,
+*	and returns a pointer to it.  The pointer may subsequently be used as an
+*	argument to the function free
+* Parametes:
+*	*s1 - string to duplicate
+* Returns:
+*	Pointer to the duplicated string
+*/
+char	*ft_strdup(const char *s1)
+{
+	size_t	len;
+	char	*dup;
+
+	len = ft_strlen(s1);
+	dup = (char *) malloc((len + 1) * sizeof(char));
+	if (dup == NULL)
+		return (NULL);
+	ft_strlcpy(dup, s1, len + 1);
+	return (dup);
 }
 
 /**
@@ -169,28 +191,6 @@ size_t	ft_strlcat(char *dst, const char *src, size_t dstsize)
 	if (dst_len >= dstsize)
 		dst_len = dstsize;
 	return (dst_len + src_len);
-}
-
-/**
-* Allocates sufficient memory for a copy of the string s1, does the copy,
-*	and returns a pointer to it.  The pointer may subsequently be used as an
-*	argument to the function free
-* Parametes:
-*	*s1 - string to duplicate
-* Returns:
-*	Pointer to the duplicated string
-*/
-char	*ft_strdup(const char *s1)
-{
-	size_t	len;
-	char	*dup;
-
-	len = ft_strlen(s1);
-	dup = (char *) malloc((len + 1) * sizeof(char));
-	if (dup == NULL)
-		return (NULL);
-	ft_strlcpy(dup, s1, len + 1);
-	return (dup);
 }
 
 /**
