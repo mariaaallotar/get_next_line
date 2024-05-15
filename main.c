@@ -12,6 +12,7 @@ int	main()
 	while (i > 0)
 	{
 		printf("%s", get_next_line(fd));
+		printf("one line was returned\n");
 		i--;
 	}
 	close(fd);

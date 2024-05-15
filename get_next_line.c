@@ -13,7 +13,7 @@
 #include "get_next_line.h"
 
 //fix headerfile and utils
-int	ft_findchr(const char *s, int c);
+int		ft_findchr(const char *s, int c);
 char	*ft_substr(char const *s, unsigned int start, size_t len);
 char	*ft_strjoin(char const *s1, char const *s2);
 char	*ft_strdup(const char *s1);
@@ -37,19 +37,22 @@ char	*get_next_line(int fd)
 		if (bytes_read == 0)
 		{
 			line = ft_strdup(rest);
-			//free(read_buf);
-			//free(rest);
+			free(read_buf);
+			free(rest);
+			if (line == NULL)
+				return (NULL);
 			return (line);
-		} else if (bytes_read == -1)
+		}
+		else if (bytes_read == -1)
 		{
-			//free(read_buf);
+			free(read_buf);
 			//free(rest);
 			return (NULL);
 		}
 		read_buf[BUFFER_SIZE] = '\0';
 		temp = ft_strjoin(rest, read_buf);
 		//free(rest);
-		//free(read_buf);
+		free(read_buf);
 		if (temp == NULL)
 			return (NULL);
 		line_end_i = ft_findchr(temp, '\n');
@@ -58,19 +61,14 @@ char	*get_next_line(int fd)
 			line = ft_substr(temp, 0, line_end_i + 1);
 			if (line == NULL)
 			{
-				//free(temp);
-				return(NULL);
+				free(temp);
+				return (NULL);
 			}
 			rest = ft_strdup(temp + ft_strlen(line));
-			return(line);
-		}
-		line_end_i = ft_findchr(temp, '\0');
-		if (line_end_i)
-		{
-			line = ft_strdup(temp);
-			//free(temp);
 			return (line);
 		}
+		rest = ft_strdup(temp);
+		free(temp);
 	}
 	return(NULL);
 }
