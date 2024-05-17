@@ -5,8 +5,8 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: maheleni <maheleni@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/05/13 12:25:38 by maheleni          #+#    #+#             */
-/*   Updated: 2024/05/13 12:25:39 by maheleni         ###   ########.fr       */
+/*   Created: 2024/05/17 10:33:46 by maheleni          #+#    #+#             */
+/*   Updated: 2024/05/17 10:33:48 by maheleni         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,11 +18,16 @@ char	*join_rest_read(char *rest, char *read_buf)
 	size_t		rest_len;
 	size_t		read_len;
 
-	if (!rest || !read_buf)
-		return (NULL);
+	if (rest == NULL)
+	{
+		rest = (char *) malloc(1 * sizeof(char));
+		if (rest == NULL)
+			return (NULL);
+		rest[0] = '\0';
+	}
 	rest_len = ft_strlen(rest);
 	read_len = ft_strlen(read_buf);
-	new_rest = (char *) malloc((rest_len + read_len + 1) * sizeof (char));
+	new_rest = (char *) calloc((rest_len + read_len + 1), sizeof (char)); //chage calloc to something else
 	if (new_rest == NULL)
 		return (NULL);
 	ft_strlcat(new_rest, rest, (rest_len + read_len + 1));
@@ -31,45 +36,7 @@ char	*join_rest_read(char *rest, char *read_buf)
 	return (new_rest);
 }
 
-char	*read_to_rest(int fd, char *rest)
-{
-	char	*read_buf;
-	int		read_bytes;
-
-	//allocate read buffer
-	read_buf = (char *) malloc((BUFFER_SIZE + 1) * sizeof(char));
-	//check that allocation worked
-	if (!read_buf)
-		return (NULL);
-	//while rest does not contain newline and bytes read is not 0
-	read_bytes = 1;
-	if (!rest)
-	{
-		rest = (char *) malloc(1 * sizeof(char));
-		rest[0] = '\0';
-	}
-	while (!ft_strchr(rest, '\n') && read_bytes != 0)
-	{
-		//read into buffer and save bytes read
-		read_bytes = read(fd, read_buf, BUFFER_SIZE);
-		//check that reading was successfull
-		if (read_bytes == -1)
-		{
-			//if not free the read buffer
-			free(read_buf);
-			return (NULL);
-		}
-		//nullterminate the readbuffer
-		read_buf[BUFFER_SIZE] = '\0';
-		//create the rest string by combining the rest and read buffer and freeing the old rest
-		rest = join_rest_read(rest, read_buf);
-	}
-	//now we have a new line in rest, so lets free the read buffer
-	free(read_buf);
-	return (rest);
-}
-
-char	*get_line_from_rest(char *rest)
+char	*create_line(char *rest)
 {
 	int		i;
 	char	*line;
@@ -80,7 +47,7 @@ char	*get_line_from_rest(char *rest)
 	while (rest[i] && rest[i] != '\n')
 		i++;
 	line = (char *)malloc(sizeof(char) * (i + 2));
-	if (!line)
+	if (line == NULL)
 		return (NULL);
 	i = 0;
 	while (rest[i] && rest[i] != '\n')
@@ -97,45 +64,72 @@ char	*get_line_from_rest(char *rest)
 	return (line);
 }
 
-char	*get_new_rest(char *rest)
+char	*free_and_return(char *read_buf, char *rest, ssize_t situation)
 {
-	char	*new_rest;
-	int		i;
+	char	*line;
 
-	i = 0;
-	while (rest[i] && rest[i] != '\n')
-		i++;
-	if (!rest[i])
+	if (read_buf != NULL)
+		free(read_buf);
+	if (situation == -1) //read_buf, new_rest or line allocation failed or read had error, rest might be allocated RETURN NULL
 	{
-		free(rest);
+		if (rest != NULL)
+			free(rest);
 		return (NULL);
 	}
-	new_rest = (char *)malloc((ft_strlen(rest) - i + 1) * sizeof(char));
-	if (!new_rest)
+	else if (situation == 0) //nothing read, rest might be allocated, return line of all rest or NULL if rest is not allocated
+	{
+		if (rest != NULL)
+		{
+			line = create_line(rest);
+			if (line == NULL)
+				return(free_and_return(read_buf, rest, -1));
+			free(rest);
+			return (line);
+		}
 		return (NULL);
-	ft_strlcat(new_rest, rest + i + 1, (ft_strlen(rest) - i + 1));
-	free(rest);
-	return (new_rest);
+	}
+	if (rest == NULL)
+	{
+		rest = (char *) malloc (1 * sizeof(char));
+		if (rest == NULL)
+			return (NULL);
+		rest[0] = '\0';
+	}
+	return(create_line(rest));
+}
+
+char	*read_next_line(int fd)
+{
+	ssize_t	bytes_read;
+	char	*read_buf;
+	static char	*rest;
+
+	read_buf = (char *) malloc ((BUFFER_SIZE + 1) * sizeof(char));
+	if (read_buf == NULL)
+		return (free_and_return(read_buf, rest, -1));
+	bytes_read = 1;
+	while (bytes_read != 0)
+	{
+		bytes_read = read(fd, read_buf, BUFFER_SIZE);
+		if (bytes_read == -1)
+			return(free_and_return(read_buf, rest, -1));
+		if (bytes_read > 0)
+			read_buf[bytes_read] = '\0';
+		rest = join_rest_read(rest, read_buf);
+		if (rest == NULL)
+			return (free_and_return(read_buf, rest, -1));
+		if (ft_strchr(rest, '\n') != NULL) //we have read a full line
+			break;
+	}
+	//at this point we have a buffer with a new line or we are at end of file
+	//we are sure that rest is allocated
+	//we want to return a line and free everything not necessary anymore
+	return (free_and_return(read_buf, rest, bytes_read));
 }
 
 char	*get_next_line(int fd)
 {
-	static char	*rest;
-	char		*line;
-
-	//check that fd is bigger than or equal to 0 and BUFFER_SIZE is bigger than 0
 	if (fd < 0 || BUFFER_SIZE <= 0)
 		return (NULL);
-	//create rest (rest is at this point everything read containing newline or end) with read_to_rest()
-	rest = read_to_rest(fd, rest);
-	//check that the creation of rest went well
-		//if not: return NULL
-	if (!rest)
-		return (NULL);
-	//get the next line into its own variable, nothing more
-	line = get_line_from_rest(rest);
-	//remove the next line from rest and create a new rest (the acctual rest), free everything else than the new rest
-	rest = get_new_rest(rest);
-	//return the line
-	return (line);
+	return (read_next_line(fd));
 }
