@@ -8,7 +8,7 @@
 int	main()
 {
 	int	i = 10;
-	int fd = open("empty.txt", O_RDONLY);
+	int fd = open("1char.txt", O_RDONLY);
 	while (i > 0)
 	{
 		printf("%s\n", get_next_line(fd));

@@ -65,6 +65,7 @@ char	*create_line_and_rest(char *read_buf, char **rest_ptr)
 			break;
 		line++;
 	}
+	*line = '\0';
 	new_rest = (char *) calloc((ft_strlen(*rest_ptr) + 1), sizeof(char)); //change calloc to something else
 	if (new_rest == NULL)
 		return (free_everything(read_buf, line, rest_ptr));
@@ -96,6 +97,7 @@ char	*read_next_line(int fd, char **rest_ptr)
 			if (**rest_ptr == '\0')
 				return (free_everything(read_buf, NULL, rest_ptr));
 			line = create_line_and_rest(read_buf, rest_ptr);
+			free_everything(read_buf, NULL, rest_ptr);
 			return (line);
 		}
 		read_buf[bytes_read] = '\0';
