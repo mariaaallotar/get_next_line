@@ -11,7 +11,7 @@ int	main()
 	int fd = open("normal.txt", O_RDONLY);
 	while (i > 0)
 	{
-		printf("%s", get_next_line(fd));
+		printf("%s\n", get_next_line(fd));
 		printf("one line was returned\n");
 		i--;
 	}

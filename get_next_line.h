@@ -5,8 +5,8 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: maheleni <maheleni@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/05/13 12:25:57 by maheleni          #+#    #+#             */
-/*   Updated: 2024/05/13 12:25:58 by maheleni         ###   ########.fr       */
+/*   Created: 2024/05/20 10:16:05 by maheleni          #+#    #+#             */
+/*   Updated: 2024/05/20 10:16:07 by maheleni         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,6 +24,5 @@ char	*get_next_line(int fd);
 size_t	ft_strlcat(char *dst, const char *src, size_t dstsize);
 char	*ft_strchr(const char *s, int c);
 size_t	ft_strlen(const char *s);
-
 
 #endif

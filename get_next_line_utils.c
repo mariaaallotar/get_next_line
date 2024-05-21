@@ -63,6 +63,8 @@ size_t	ft_strlcat(char *dst, const char *src, size_t dstsize)
 */
 char	*ft_strchr(const char *s, int c)
 {
+	if (s == NULL)
+		return (NULL);
 	while (*s != '\0')
 	{
 		if (*s == (char) c)
@@ -85,6 +87,8 @@ size_t	ft_strlen(const char *s)
 {
 	size_t	i;
 
+	if (s == NULL)
+		return (0);
 	i = 0;
 	while (*s != '\0')
 	{
