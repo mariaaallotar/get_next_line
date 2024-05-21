@@ -12,69 +12,72 @@
 
 #include "get_next_line.h"
 
-char	*free_everything(char *read_buf, char *line, char *rest)
+char	*free_everything(char *read_buf, char *line, char **rest_ptr)
 {
 	if (read_buf != NULL)
 		free(read_buf);
     if (line != NULL)
 		free(line);
-    if (rest != NULL)
-		free(rest);
+    if (*rest_ptr != NULL)
+		free(*rest_ptr);
     read_buf = NULL;
     line = NULL;
-    rest = NULL;
+    *rest_ptr = NULL;
 	return (NULL);
 }
 
-char	*join_rest_read(char *read_buf, char *line, char **rest)
+char	*join_rest_read(char *read_buf, char *line, char **rest_ptr)
 {
 	char		*new_rest;
 	size_t		rest_len;
 	size_t		read_len;
 
-	rest_len = ft_strlen(*rest);
+	rest_len = ft_strlen(*rest_ptr);
 	read_len = ft_strlen(read_buf);
 	new_rest = (char *) calloc((rest_len + read_len + 1), sizeof (char)); //change calloc to something else
 	if (new_rest == NULL)
-		return (free_everything(read_buf, line, *rest));
-	ft_strlcat(new_rest, *rest, (rest_len + read_len + 1));
+		return (free_everything(read_buf, line, rest_ptr));
+	ft_strlcat(new_rest, *rest_ptr, (rest_len + read_len + 1));
 	ft_strlcat(new_rest, read_buf, (rest_len + read_len + 1));
-	free(*rest);
-	*rest = NULL; //maybe unecessary
+	free(*rest_ptr);
+	*rest_ptr = NULL; //maybe unecessary
 	return (new_rest);
 }
 
-char	*create_line_and_rest(char *read_buf, char **rest)
+char	*create_line_and_rest(char *read_buf, char **rest_ptr)
 {
 	char	*new_rest;
 	char	*line;
 	char	*orig_line;
+	char	*orig_rest;
 
 	//possibly too much space allocated for line
-	line = (char *) calloc((ft_strlen(*rest) + 1), sizeof(char)); //change calloc to something else
+	line = (char *) calloc((ft_strlen(*rest_ptr) + 1), sizeof(char)); //change calloc to something else
 	if (line == NULL)
-		return (free_everything(read_buf, line, *rest));
+		return (free_everything(read_buf, line, rest_ptr));
 	orig_line = line;
-	while (**rest != '\0')
+	orig_rest = *rest_ptr;
+	while (**rest_ptr != '\0')
 	{
-		*line = **rest;
-		(*rest)++;
+		*line = **rest_ptr;
+		(*rest_ptr)++;
 		if (*line == '\n')
 			break;
 		line++;
 	}
-	new_rest = (char *) calloc((ft_strlen(*rest) + 1), sizeof(char)); //change calloc to something else
+	new_rest = (char *) calloc((ft_strlen(*rest_ptr) + 1), sizeof(char)); //change calloc to something else
 	if (new_rest == NULL)
-		return (free_everything(read_buf, line, *rest));
-	new_rest[ft_strlen(*rest)] = '\0';
-	ft_strlcat(new_rest, *rest, ft_strlen(*rest) + 1);
-	if (*rest != NULL)
-		free(*rest);
-	*rest = new_rest;
+		return (free_everything(read_buf, line, rest_ptr));
+	new_rest[ft_strlen(*rest_ptr)] = '\0';
+	ft_strlcat(new_rest, *rest_ptr, ft_strlen(*rest_ptr) + 1);
+	if (*rest_ptr != NULL)
+	free(orig_rest);
+	orig_rest = NULL;
+	*rest_ptr = new_rest;
 	return (orig_line);
 }
 
-char	*read_next_line(int fd, char **rest)
+char	*read_next_line(int fd, char **rest_ptr)
 {
 	char	*read_buf;
 	ssize_t	bytes_read;
@@ -82,25 +85,27 @@ char	*read_next_line(int fd, char **rest)
 
 	read_buf = (char *) malloc((BUFFER_SIZE + 1) * sizeof(char));
 	if (read_buf == NULL)
-		return (free_everything(read_buf, NULL, *rest));
-	while (ft_strchr(*rest, '\n') == NULL)
+		return (free_everything(read_buf, NULL, rest_ptr));
+	while (ft_strchr(*rest_ptr, '\n') == NULL)
 	{
 		bytes_read = read(fd, read_buf, BUFFER_SIZE);
 		if (bytes_read == -1)
-			return (free_everything(read_buf, NULL, *rest));
+			return (free_everything(read_buf, NULL, rest_ptr));
 		if (bytes_read == 0)
 		{
-			line = create_line_and_rest(read_buf, rest);
+			if (**rest_ptr == '\0')
+				return (free_everything(read_buf, NULL, rest_ptr));
+			line = create_line_and_rest(read_buf, rest_ptr);
 			return (line);
 		}
 		read_buf[bytes_read] = '\0';
-		*rest = join_rest_read(read_buf, NULL, rest);
-		if (*rest == NULL)
-			return (free_everything(read_buf, NULL, *rest)); //probably uncessary at this point
+		*rest_ptr = join_rest_read(read_buf, NULL, rest_ptr);
+		if (*rest_ptr == NULL)
+			return (free_everything(read_buf, NULL, rest_ptr)); //probably uncessary at this point
 	}
-	line = create_line_and_rest(read_buf, rest);
+	line = create_line_and_rest(read_buf, rest_ptr);
 	if (line == NULL)
-		return (free_everything(read_buf, line, *rest)); //probably uncessary at this point
+		return (free_everything(read_buf, line, rest_ptr)); //probably uncessary at this point
 	free(read_buf);
 	read_buf = NULL;
 	return (line);
