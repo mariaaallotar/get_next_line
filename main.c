@@ -7,7 +7,7 @@
 
 int	main()
 {
-	int	i = 10;
+	int	i = 3;
 	int fd = open("1char.txt", O_RDONLY);
 	while (i > 0)
 	{
