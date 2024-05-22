@@ -14,6 +14,7 @@
 
 //remove this inclusion
 #include <strings.h>
+#include <stdio.h>
 
 char	*free_everything(char *read_buf, char **line, char **rest_ptr)
 {
@@ -63,21 +64,18 @@ char	*create_line_and_rest(char *read_buf, char **rest_ptr)
 
 	orig_rest = *rest_ptr;
 	int line_alloc = 0;
-	while (**rest_ptr != '\0')
+	while (**rest_ptr != '\0' && **rest_ptr != '\n')
 	{
 		line_alloc++;
 		(*rest_ptr)++;
-		if (**rest_ptr == '\n')
-		{
-			line_alloc++;
-			break;
-		}
 	}
+	line_alloc += **rest_ptr == '\n';
 	*rest_ptr = orig_rest;
-	line = (char *) calloc(line_alloc + 1, sizeof(char)); //change calloc to something else
-	if (line == NULL)
+	//printf("Allocating for line: %d\n", (line_alloc));
+	orig_line = (char *) calloc(line_alloc + 1, sizeof(char)); //change calloc to something else
+	if (orig_line == NULL)
 		return (free_everything(read_buf, &line, rest_ptr));
-	orig_line = line;
+	line = orig_line;
 	while (**rest_ptr != '\0')
 	{
 		*line = **rest_ptr;
@@ -92,7 +90,7 @@ char	*create_line_and_rest(char *read_buf, char **rest_ptr)
 	int new_rest_alloc = ft_strlen(*rest_ptr) + 1;
 	new_rest = (char *) calloc((new_rest_alloc), sizeof(char)); //change calloc to something else
 	if (new_rest == NULL)
-		return (free_everything(read_buf, &line, rest_ptr));
+		return (free_everything(read_buf, &orig_line, rest_ptr));
 	ft_strlcat(new_rest, *rest_ptr, ft_strlen(*rest_ptr) + 1);
 	free_everything(orig_rest, NULL, NULL);
 	*rest_ptr = new_rest;
@@ -134,7 +132,6 @@ char	*read_next_line(int fd, char **rest_ptr)
 
 char	*get_next_line(int fd)
 {
-	char		*line;
 	static char	*rest;
 
 	if (fd < 0 || BUFFER_SIZE <= 0 || read(fd, 0, 0) != 0)
@@ -146,12 +143,9 @@ char	*get_next_line(int fd)
 			return (NULL);
 	}
 	if (ft_strchr(rest, '\n'))
-	{
-		line = create_line_and_rest(NULL, &rest);
-		if (line == NULL)
-			return (NULL);
-		return (line);
-	}
-	line = read_next_line(fd, &rest);
+		return (create_line_and_rest(NULL, &rest));
+	char *line = read_next_line(fd, &rest);
+	// printf("%p\n", line);
+	// printf("returning: %s\n", line);
 	return (line);
 }
