@@ -7,12 +7,11 @@
 
 int	main()
 {
-	int	i = 3;
-	int fd = open("1char.txt", O_RDONLY);
+	int	i = 14;
+	int fd = open("variable_nls.txt", O_RDONLY);
 	while (i > 0)
 	{
-		printf("%s\n", get_next_line(fd));
-		printf("one line was returned\n");
+		printf("%s", get_next_line(fd));
 		i--;
 	}
 	close(fd);

@@ -12,17 +12,20 @@
 
 #include "get_next_line.h"
 
-char	*free_everything(char *read_buf, char *line, char **rest_ptr)
+//remove this inclusion
+#include <strings.h>
+
+char	*free_everything(char *read_buf, char **line, char **rest_ptr)
 {
 	if (read_buf != NULL)
 	{
 		free(read_buf);
 		read_buf = NULL;
 	}
-    if (line != NULL)
+    if (line != NULL && *line != NULL)
 	{
-		free(line);
-		line = NULL;
+		free(*line);
+		*line = NULL;
 	}
     if (rest_ptr != NULL && *rest_ptr != NULL)
 	{
@@ -47,6 +50,7 @@ char	*join_rest_read(char *read_buf, char **rest_ptr)
 	ft_strlcat(new_rest, *rest_ptr, (rest_len + read_len + 1));
 	ft_strlcat(new_rest, read_buf, (rest_len + read_len + 1));
 	free_everything(NULL, NULL, rest_ptr);
+	bzero(read_buf, (BUFFER_SIZE + 1)); //change to somehting else
 	return (new_rest);
 }
 
@@ -57,13 +61,23 @@ char	*create_line_and_rest(char *read_buf, char **rest_ptr)
 	char	*orig_line;
 	char	*orig_rest;
 
-	//possibly too much space allocated for line
-	int line_alloc = ft_strlen(*rest_ptr) + 1;
-	line = (char *) calloc(line_alloc, sizeof(char)); //change calloc to something else
-	if (line == NULL)
-		return (free_everything(read_buf, line, rest_ptr));
-	orig_line = line;
 	orig_rest = *rest_ptr;
+	int line_alloc = 0;
+	while (**rest_ptr != '\0')
+	{
+		line_alloc++;
+		(*rest_ptr)++;
+		if (**rest_ptr == '\n')
+		{
+			line_alloc++;
+			break;
+		}
+	}
+	*rest_ptr = orig_rest;
+	line = (char *) calloc(line_alloc + 1, sizeof(char)); //change calloc to something else
+	if (line == NULL)
+		return (free_everything(read_buf, &line, rest_ptr));
+	orig_line = line;
 	while (**rest_ptr != '\0')
 	{
 		*line = **rest_ptr;
@@ -75,12 +89,10 @@ char	*create_line_and_rest(char *read_buf, char **rest_ptr)
 		}
 		line++;
 	}
-	*line = '\0';
 	int new_rest_alloc = ft_strlen(*rest_ptr) + 1;
 	new_rest = (char *) calloc((new_rest_alloc), sizeof(char)); //change calloc to something else
 	if (new_rest == NULL)
-		return (free_everything(read_buf, line, rest_ptr));
-	new_rest[ft_strlen(*rest_ptr)] = '\0';
+		return (free_everything(read_buf, &line, rest_ptr));
 	ft_strlcat(new_rest, *rest_ptr, ft_strlen(*rest_ptr) + 1);
 	free_everything(orig_rest, NULL, NULL);
 	*rest_ptr = new_rest;
@@ -93,7 +105,7 @@ char	*read_next_line(int fd, char **rest_ptr)
 	ssize_t	bytes_read;
 	char	*line;
 
-	read_buf = (char *) malloc((BUFFER_SIZE + 1) * sizeof(char));
+	read_buf = (char *) calloc((BUFFER_SIZE + 1), sizeof(char)); //change calloc to something else
 	if (read_buf == NULL)
 		return (free_everything(read_buf, NULL, rest_ptr));
 	while (ft_strchr(*rest_ptr, '\n') == NULL)
@@ -109,14 +121,13 @@ char	*read_next_line(int fd, char **rest_ptr)
 			free_everything(read_buf, NULL, rest_ptr);
 			return (line);
 		}
-		read_buf[bytes_read] = '\0';
 		*rest_ptr = join_rest_read(read_buf, rest_ptr);
 		if (*rest_ptr == NULL)
 			return (free_everything(read_buf, NULL, rest_ptr)); //probably uncessary at this point
 	}
 	line = create_line_and_rest(read_buf, rest_ptr);
 	if (line == NULL)
-		return (free_everything(read_buf, line, rest_ptr)); //probably uncessary at this point
+		return (free_everything(read_buf, &line, rest_ptr)); //probably uncessary at this point
 	free_everything(read_buf, NULL, NULL);
 	return (line);
 }
@@ -126,14 +137,13 @@ char	*get_next_line(int fd)
 	char		*line;
 	static char	*rest;
 
-	if (fd < 0 || BUFFER_SIZE <= 0 || !read(fd, 0, 0))
+	if (fd < 0 || BUFFER_SIZE <= 0 || read(fd, 0, 0) != 0)
 		return (NULL);
 	if (!rest)
 	{
 		rest = (char *) calloc(1, sizeof(char)); //change calloc to something else
 		if (rest == NULL)
 			return (NULL);
-		rest[0] = '\0';
 	}
 	if (ft_strchr(rest, '\n'))
 	{
