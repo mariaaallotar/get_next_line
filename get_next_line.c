@@ -51,15 +51,13 @@ static char	*create_line_and_set_rest(char **rest_ptr)
 	return (line);
 }
 
-static char	*join_rest_read(char *read_buf, char **rest_ptr)
+static char	*join_rest_read(char *read_buf, char **rest_ptr, ssize_t read_len)
 {
 	char		*new_rest;
 	size_t		rest_len;
-	size_t		read_len;
 	int			new_rest_len;
 
 	rest_len = ft_strlen(*rest_ptr);
-	read_len = ft_strlen(read_buf);
 	new_rest_len = rest_len + read_len + 1;
 	new_rest = (char *) malloc(new_rest_len * sizeof (char));
 	if (new_rest == NULL)
@@ -87,7 +85,7 @@ static char	*read_next_line(int fd, char *read_buf, char **rest_ptr)
 			return (free_mallocs(NULL, rest_ptr));
 		read_buf[bytes_read] = '\0';
 		if (bytes_read != 0)
-			*rest_ptr = join_rest_read(read_buf, rest_ptr);
+			*rest_ptr = join_rest_read(read_buf, rest_ptr, bytes_read);
 		if (*rest_ptr == NULL)
 			return (NULL);
 	}

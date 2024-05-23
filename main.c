@@ -7,8 +7,8 @@
 
 int	main()
 {
-	int	i = 14;
-	int fd = open("1char.txt", O_RDONLY);
+	int	i = 3;
+	int fd = open("giant_line.txt", O_RDONLY);
 	while (i > 0)
 	{
 		char *line = get_next_line(fd);
