@@ -8,11 +8,11 @@
 int	main()
 {
 	int	i = 14;
-	int fd = open("variable_nls.txt", O_RDONLY);
+	int fd = open("1char.txt", O_RDONLY);
 	while (i > 0)
 	{
 		char *line = get_next_line(fd);
-		printf("%s\n", line);
+		printf("%s", line);
 		i--;
 		if (line != NULL)
 			free(line);

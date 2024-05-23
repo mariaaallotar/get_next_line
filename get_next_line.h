@@ -21,8 +21,10 @@
 # include <stdlib.h>
 
 char	*get_next_line(int fd);
-size_t	ft_strlcat(char *dst, const char *src, size_t dstsize);
-char	*ft_strchr(const char *s, int c);
+char	*mod_substr(char *str, int start_i, char end_char);
+int		findchr(char *str, char c);
+void	*ft_memset(void *s, int c, size_t len);
 size_t	ft_strlen(const char *s);
+size_t	ft_strlcat(char *dst, const char *src, size_t dstsize);
 
 #endif
